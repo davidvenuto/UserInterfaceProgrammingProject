@@ -1,3 +1,3 @@
 # UserInterfaceProgrammingProject
 
-![Entity Relationship Diagram](/public/images/ERD.png)
+![Entity Relationship Diagram](/public/images/ERD.PNG)
