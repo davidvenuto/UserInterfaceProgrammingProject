@@ -21,8 +21,11 @@ app.use(function(req, res, next){
     next();
 });
 
-app.use(express.static(__dirname + "/public"));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, '/client', '/public', 'index.html')));
+app.use(express.static(path.join(__dirname, 'client', 'build')));
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
+});
+
 
 app.use('/user', userRoutes);
 app.use('/post', postRoutes);
