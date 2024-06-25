@@ -1,15 +1,22 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 import './App.css';
 import Navbar from './components/Navbar.js';
-import LoginForm from './components/LoginForm.js';
-import RegisterForm from './components/RegisterForm.js';
+import LoginForm from './components/pages/LoginForm.js';
+import RegisterForm from './components/pages/RegisterForm.js';
+import About from './components/pages/About.js';
 
 function App() {
-  console.log("App is rendering")
   return (
     <div className="App">
-      <Navbar />
-      <LoginForm />
-      <RegisterForm />
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Navbar />}>
+            <Route index element={<About />} />
+            <Route path="registration" element={<RegisterForm />} />
+            <Route path="login" element={<LoginForm />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }
