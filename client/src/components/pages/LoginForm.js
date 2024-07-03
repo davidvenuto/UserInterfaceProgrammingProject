@@ -1,22 +1,28 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { fetchData } from '../../main';
 import { useNavigate } from "react-router-dom";
+import { UserContext } from '../../context';
 
 function LoginForm() {
     const navigate = useNavigate();
     const [form, setForm] = useState({ username: '', password: '' });
-    const [error ] = useState('');
+    const [error, setError] = useState('');
+    const { setUser } = useContext(UserContext); 
 
     const { username, password } = form;
 
     const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-    const onSubmit = (e) => {
+    const onSubmit = async (e) => {
         e.preventDefault();
-        fetchData('/user/login', { username, password }, 'POST')
-            .finally(() => {
-                navigate("/profile");
-            });
+        try {
+            const userData = await fetchData('/user/login', { username, password }, 'POST');
+            console.log('User data on login:', userData); 
+            setUser(userData);
+            navigate("/profile");
+        } catch (err) {
+            setError(err.message);
+        }
     };
 
     return (

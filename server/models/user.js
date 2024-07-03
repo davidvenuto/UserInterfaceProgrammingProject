@@ -1,10 +1,7 @@
-// import mongoose
 const mongoose = require("mongoose");
-
-//import bcrypt
 const bcrypt = require('bcryptjs');
 
-// create user schema
+// Create user schema
 const userSchema = new mongoose.Schema({
     username: { type: String, unique: true, required: true },
     password: { type: String, required: true },
@@ -12,7 +9,7 @@ const userSchema = new mongoose.Schema({
     following: [String],
 });
 
-// create model of schema
+// Create model of schema
 const User = mongoose.model("User", userSchema);
 
 // CRUD FUNCTIONS
@@ -20,7 +17,7 @@ const User = mongoose.model("User", userSchema);
 // CREATE
 async function register(username, password) {
     const user = await getUser(username);
-    if (user) throw Error('Username already in use');
+    if (user) throw new Error('Username already in use');
 
     const salt = await bcrypt.genSalt(10);
     const hashed = await bcrypt.hash(password, salt);
@@ -33,22 +30,31 @@ async function register(username, password) {
     return newUser;
 }
 
+// LOGIN
 async function login(username, password) {
     const user = await User.findOne({ username: username });
-    if (!user) throw Error('User not found');
+    if (!user) throw new Error('User not found');
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if(!isMatch) throw Error('Wrong Password');
+    if(!isMatch) throw new Error('Wrong Password');
 
-    return user._doc;
+    // Return user object without password
+    const { password: _, ...userWithoutPassword } = user.toObject();
+    return userWithoutPassword;
 }
 
-// UPDATE
+// UPDATE PASSWORD
 async function updatePassword(id, password) {
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(password, salt);
+
     const user = await User.findOneAndUpdate(
-        { _id: id }, { $set: { password: password } }, { new: true }
+        { _id: id }, { $set: { password: hashed } }, { new: true }
     );
-    return user;
+
+    // Return user object without password
+    const { password: _, ...userWithoutPassword } = user.toObject();
+    return userWithoutPassword;
 }
 
 // DELETE
@@ -56,10 +62,10 @@ async function deleteUser(id) {
     await User.deleteOne({ _id: id });
 }
 
-// utility functions
+// Utility functions
 async function getUser(username) {
     return await User.findOne({ username: username });
 }
 
-// export all functions we want to access in routes
-module.exports = { register, login, updatePassword, deleteUser };
+// Export the User model and utility functions separately
+module.exports = { User, register, login, updatePassword, deleteUser };

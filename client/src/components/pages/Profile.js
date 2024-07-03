@@ -1,41 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import { fetchData } from '../../main'; // Ensure this function is correctly implemented
+import { useState, useEffect, useContext } from 'react';
+import { fetchData } from '../../main';
 import { useNavigate } from "react-router-dom";
+import { UserContext } from '../../context';
 
 function Profile() {
     const navigate = useNavigate();
-    const [user, setUser] = useState({ _id: '', username: '' });
+    const { user } = useContext(UserContext); 
     const [posts, setPosts] = useState([]);
     const [newPost, setNewPost] = useState('');
+    const [error, setError] = useState('');
 
     useEffect(() => {
-        const userId = localStorage.getItem('userId'); // Assuming userId is stored in localStorage
-        fetchData(`/user/profile/${userId}`, {}, 'GET')
-            .then(data => {
-                setUser(data);
-                return fetchData(`/post/user/${data._id}`, {}, 'GET');
-            })
-            .then(postsData => setPosts(postsData))
-            .catch(error => console.error('Error fetching profile data:', error));
-    }, []);
+        let isMounted = true;
+
+        const fetchProfileData = async () => {
+            try {
+                if (!user) {
+                    throw new Error('User not found');
+                }
+                const postsData = await fetchData(`/post/user/${user._id}`, {}, 'GET');
+                if (isMounted) setPosts(postsData);
+            } catch (error) {
+                console.error('Error fetching profile data:', error);
+                setError('Error fetching profile data');
+            }
+        };
+
+        fetchProfileData();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [user]);
 
     const handleNewPostChange = (e) => {
         setNewPost(e.target.value);
     };
 
-    const handleCreatePost = (e) => {
+    const handleCreatePost = async (e) => {
         e.preventDefault();
-        fetchData('/post/create', { userId: user._id, content: newPost }, 'POST')
-            .then(newPost => {
-                setPosts([...posts, newPost]);
-                setNewPost('');
-            })
-            .catch(error => console.error('Error creating post:', error));
+        try {
+            const newPostData = await fetchData('/post/create', { userId: user._id, content: newPost }, 'POST');
+            setPosts([...posts, newPostData]);
+            setNewPost('');
+        } catch (error) {
+            console.error('Error creating post:', error);
+            setError('Error creating post');
+        }
     };
+
+    if (!user) {
+        return <div className="container mt-5"><h2>Loading...</h2></div>;
+    }
 
     return (
         <div className="container mt-5">
             <h2>Welcome, {user.username}</h2>
+            {error && <div className="alert alert-danger">{error}</div>}
             <h3>Your Posts</h3>
             <ul>
                 {posts.map(post => (
