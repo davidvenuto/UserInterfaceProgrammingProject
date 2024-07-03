@@ -6,7 +6,7 @@ const path = require('path');
 
 const userRoutes = require('./server/routes/user');
 const postRoutes = require('./server/routes/post');
-const commentRoutes = require('./server/routes/comment'); // Import the comment routes
+const commentRoutes = require('./server/routes/comment'); 
 
 mongoose.connect(process.env.dbURL)
     .then(() => console.log("DB Connected!!"))
@@ -23,7 +23,7 @@ app.use(function(req, res, next){
 
 app.use('/user', userRoutes);
 app.use('/post', postRoutes);
-app.use('/comment', commentRoutes); // Use the comment routes
+app.use('/comment', commentRoutes);
 
 app.use(express.static(path.join(__dirname, 'client', 'build')));
 
@@ -31,7 +31,6 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
